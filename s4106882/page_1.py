@@ -1,16 +1,16 @@
 def get_page_html(form_data):
-    print("About to return the home page...")
     page_html="""
     <!DOCTYPE html>
     <html lang="en">
     <head>
-        <link rel="stylesheet" href="/New folder/style.css">
+        <link rel="stylesheet" href="/s4106882/style.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-        <script src="/New folder/.js" defer></script>
+        <script src="/s4106882/.js" defer></script>
         <title>Home Page</title>
     </head>
     <body>
         <header>
+            <img src="/s4106882/images/RMIT-emblem.png" class="logo">
             <nav>
                 <i class="glyphicon glyphicon-home"></i><a href="/">Home</a>
                 <i class="glyphicon glyphicon-map-marker"></i><a href="/page2">Page 2</a>
@@ -24,16 +24,16 @@ def get_page_html(form_data):
                     <button class="graph-button next" data-graph-button="next"><i class="glyphicon glyphicon-chevron-right"></i></button>
                     <ul data-slides>
                         <li class="slide" data-active>
-                            <img src="/New folder/a.png">
-                            <p>This is a fact about the first graph</p>
+                            <img src="/s4106882/images/a.png">
+                            <p>This is a fact realting to the first graph</p>
                         </li>
                         <li class="slide" data-next>
-                            <img src="/New folder/b.jpg">
-                            <p>This is a fact about the second graph</p>
+                            <img src="/s4106882/images/b.jpg">
+                            <p>This is a fact relating to the second graph</p>
                         </li>
                         <li class="slide" data-prev>
-                            <img src="/New folder/c.png">
-                            <p>This is a fact about the third graph</p>
+                            <img src="/s4106882/images/c.png">
+                            <p>This is a fact relating to the third graph</p>
                         </li>
                     </ul>
                 </div>

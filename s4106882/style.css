@@ -1,6 +1,8 @@
 :root {
     --primary-color: #333;
     --secondary-color: #666;
+    --hightlight-color-first: rgb(161, 179, 255);
+    --hightlight-color-second: rgb(161, 255, 208);
 }
 
 *, *::before, *::after {
@@ -12,9 +14,18 @@ html, body {
 }
 
 /* Navigation bar */
+
+header img.logo {
+    width: 100px;
+    height: 60px;
+    margin-top: 10px;
+    position: absolute;
+    z-index: 10;
+}
+
 nav {
     text-align: center;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: bold;
     font-family: 'Arial', sans-serif;
     position: relative;
@@ -40,7 +51,7 @@ nav i {
     display: inline-block;
     margin-top: 10px;
     margin-right: -8px;
-    font-size: 16px;
+    font-size: 20px;
     position: relative;
     z-index: 10;
 }
@@ -105,12 +116,12 @@ nav i.glyphicon-cloud {
 }
 
 @keyframes breath {
-    0% { border-color: rgb(161, 179, 255); }
-    20% { border-color: rgb(161, 255, 208); }
-    40% { border-color: rgb(161, 179, 255); }
-    60% { border-color: rgb(161, 255, 208); }
-    80% { border-color: rgb(161, 179, 255); }
-    100% { border-color: rgb(161, 255, 208); }
+    0% { border-color: var(--hightlight-color-first); }
+    20% { border-color: var(--hightlight-color-second); }
+    40% { border-color: var(--hightlight-color-first); }
+    60% { border-color: var(--hightlight-color-second); }
+    80% { border-color: var(--hightlight-color-first); }
+    100% { border-color: var(--hightlight-color-second); }
 }
 
 .slide img {
@@ -157,12 +168,12 @@ nav i.glyphicon-cloud {
 }
 
 .graph-button.prev {
-    color: rgb(161, 179, 255);
+    color: var(--hightlight-color-first);
     left: 35%;
 }
 
 .graph-button.next {
-    color: rgb(161, 255, 208);
+    color: var(--hightlight-color-second);
     right: 35%;
 }
 
