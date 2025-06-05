@@ -1,72 +1,45 @@
 import pyhtml
 
 def get_page_html(form_data):
-    start_lat = form_data.get("start_lat", "")
-    end_lat = form_data.get("end_lat", "")
+    # Get data from forms
+    start_lat = form_data.get("start_lat", [""])[0]
+    end_lat = form_data.get("end_lat", [""])[0]
+    state = form_data.get("state", [""])[0]
 
-    # Build the query based on selected parameters
-    query = f"SELECT State, Lat FROM LOCA"
+    # Build query
+    query = """
+    SELECT s.name, ws.latitude
+    FROM state s
+    JOIN weather_station ws ON s.id = ws.state_id
+    """
     conditions = []
     
-    if start_lat and end_lat:
-        conditions.append(f"Latitude BETWEEN {start_lat} AND {end_lat}")
+    if state and state != "":
+        conditions.append(f"s.name = '{state}'")
+    
+    # Handle latitude range with optional values
+    if start_lat or end_lat:
+        lat_condition = []
+        if start_lat:
+            lat_condition.append(f"ws.latitude >= {float(start_lat)}")
+        if end_lat:
+            lat_condition.append(f"ws.latitude <= {float(end_lat)}")
+        if lat_condition:
+            conditions.append(" AND ".join(lat_condition))
     
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
     
-    # Get the data from database
-    results = pyhtml.get_results_from_query("s4106882/Database/BOM_Weather_Database.db", query)
+    # Get data from database
+    results = pyhtml.get_results_from_query("s4106882/Database/climate_test.db", query)
 
     page_html="""
     <!DOCTYPE html>
     <html lang="en">
     <head>
-        <link rel="stylesheet" href="/s4106882/style.css">
+        <link rel="stylesheet" href="/s4106882/css/style.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <title>Weather Data Selection</title>
-        <style>
-            .table {
-                background: white;
-                border-radius: 10px;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                margin-top: 20px;
-            }
-            .table th {
-                background: var(--primary-color);
-                color: white;
-                padding: 15px;
-            }
-            .table td {
-                padding: 12px;
-                color: var(--secondary-color);
-            }
-            .form-control {
-                border: 2px solid var(--hightlight-color-first);
-                border-radius: 5px;
-                padding: 8px;
-                transition: border-color 0.3s ease;
-            }
-            .form-control:focus {
-                border-color: var(--hightlight-color-second);
-                outline: none;
-                box-shadow: 0 0 5px var(--hightlight-color-second);
-            }
-            .filter-row {
-                background: white;
-                padding: 20px;
-                border-radius: 10px;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                margin: 20px 0;
-            }
-            label {
-                color: var(--primary-color);
-                font-weight: bold;
-                margin-bottom: 8px;
-            }
-            .container {
-                padding-top: 5vh;
-            }
-        </style>
     </head>
     <body>
         <header>
@@ -80,34 +53,43 @@ def get_page_html(form_data):
         <div class="container">
             <div class="row filter-row">
                 <div class="col-md-3">
-                    <label for="state">State</label>
-                    <select name="state" id="states" class="form-control">
-                        <option value="">All States</option>
-                        <option value="NSW">NSW</option>
-                        <option value="VIC">VIC</option>
-                        <option value="QLD">QLD</option>
-                        <option value="SA">SA</option>
-                        <option value="WA">WA</option>
-                    </select>
+                    <form id="filterForm" method="GET" action="/page2">
+                        <label for="state">State</label>
+                        <select name="state" id="states" class="form-control">
+                            <option value="">All States</option>
+                            <option value="A.A.T." """ + ('selected' if state == 'A.A.T.' else '') + """>AAT</option>
+                            <option value="A.E.T." """ + ('selected' if state == 'A.E.T.' else '') + """>AET</option>
+                            <option value="N.S.W." """ + ('selected' if state == 'N.S.W.' else '') + """>NSW</option>
+                            <option value="N.T." """ + ('selected' if state == 'N.T.' else '') + """>NT</option>
+                            <option value="QLD" """ + ('selected' if state == 'QLD' else '') + """>QLD</option>
+                            <option value="S.A." """ + ('selected' if state == 'S.A.' else '') + """>SA</option>
+                            <option value="TAS" """ + ('selected' if state == 'TAS' else '') + """>TAS</option>
+                            <option value="VIC" """ + ('selected' if state == 'VIC' else '') + """>VIC</option>
+                            <option value="W.A." """ + ('selected' if state == 'W.A.' else '') + """>WA</option>
+                        </select>
                 </div>
                 <div class="col-md-6">
                     <!-- For Tags -->
                 </div>
                 <div class="col-md-3">
-                    <form id="filterForm">
-                        <div class="form-group">
-                            <label>Latitude Range:</label>
-                            <div class="row" style="margin-bottom: 15px;">
-                                <div class="col-md-6">
-                                    <input type="number" name="start_lat" id="start_lat" class="form-control" step="1" placeholder="Start Latitude" value=""" + start_lat + """ required>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <input type="number" name="end_lat" id="end_lat" class="form-control" step="1" placeholder="End Latitude" value=""" + end_lat + """ required>
-                                </div>
+                    <div class="form-group">
+                        <label>Latitude Range:</label>
+                        <div class="row" style="margin-bottom: 15px;">
+                            <div class="col-md-6">
+                                <input type="number" name="start_lat" id="start_lat" class="form-control" step="1" placeholder="Start Latitude" value=""" + start_lat + """>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="number" name="end_lat" id="end_lat" class="form-control" step="1" placeholder="End Latitude" value=""" + end_lat + """>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top: 15px;">
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary">Filter</button>
+                            </div>
+                        </div>
+                    </div>
                     </form>
                 </div>
             </div>
@@ -115,7 +97,7 @@ def get_page_html(form_data):
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th class="sortable" data-sort="location">Location</th>
+                            <th class="sortable" data-sort="state">State</th>
                             <th class="sortable" data-sort="latitude">Latitude</th>
                         </tr>
                     </thead>

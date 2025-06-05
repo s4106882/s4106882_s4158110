@@ -3,7 +3,7 @@ def get_page_html(form_data):
     <!DOCTYPE html>
     <html lang="en">
     <head>
-        <link rel="stylesheet" href="/s4106882/style.css">
+        <link rel="stylesheet" href="/s4106882/css/style.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="/s4106882/.js" defer></script>
         <title>Home Page</title>
