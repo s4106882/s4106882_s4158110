@@ -8,7 +8,7 @@ def get_page_html(form_data):
 
     # Build query
     query = """
-    SELECT s.name, ws.latitude
+    SELECT s.name, ws.name, ws.latitude, ws.site_id
     FROM state s
     JOIN weather_station ws ON s.id = ws.state_id
     """
@@ -39,6 +39,7 @@ def get_page_html(form_data):
     <head>
         <link rel="stylesheet" href="/s4106882/css/style.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="/s4106882/js/page_two.js" defer></script>
         <title>Weather Data Selection</title>
     </head>
     <body>
@@ -94,11 +95,13 @@ def get_page_html(form_data):
                 </div>
             </div>
             <div id="results" class="mt-4">
-                <table class="table table-striped">
+                <table id="data-table" class="table table-striped">
                     <thead>
                         <tr>
-                            <th class="sortable" data-sort="state">State</th>
-                            <th class="sortable" data-sort="latitude">Latitude</th>
+                            <th onclick="sortTable(0)" class="sortable" data-sort="state">State</th>
+                            <th onclick="sortTable(1)" class="sortable" data-sort="name">Site Name</th>
+                            <th onclick="sortTable(2)" class="sortable" data-sort="latitude">Latitude</th>
+                            <th onclick="sortTable(3)" class="sortable" data-sort="site_id">Site ID</th>
                         </tr>
                     </thead>
                     <tbody id="data-table">
