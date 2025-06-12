@@ -181,10 +181,17 @@ nav i.glyphicon-cloud {
 
 /* Page 2 */
 
+/* Filter Section Styles */
 .filter-row {
     margin: 20px 0;
     display: flex;
     align-items: flex-start;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin: 20px 0;
+    border: 2px solid var(--hightlight-color-first);
 }
 
 .filter-row .col-md-3 {
@@ -194,6 +201,9 @@ nav i.glyphicon-cloud {
 .filter-row label {
     display: block;
     margin-bottom: 5px;
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-bottom: 8px;
 }
 
 .filter-row select.form-control {
@@ -202,53 +212,51 @@ nav i.glyphicon-cloud {
     font-size: 14px;
 }
 
-.table {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    margin-top: 20px;
-}
-.table th {
-    background: var(--primary-color);
-    color: white;
-    padding: 15px;
-}
-.table td {
-    padding: 12px;
-    color: var(--secondary-color);
-}
 .form-control {
     border: 2px solid var(--hightlight-color-first);
     border-radius: 5px;
     padding: 8px;
-    transition: border-color 0.3s ease;
+    transition: all 0.3s ease;
 }
+
 .form-control:focus {
     border-color: var(--hightlight-color-second);
     outline: none;
     box-shadow: 0 0 5px var(--hightlight-color-second);
 }
-.filter-row {
+
+/* Table Styles */
+.table {
     background: white;
-    padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    margin: 20px 0;
+    margin-top: 20px;
+    border: 2px solid var(--hightlight-color-first);
 }
-label {
+
+.table th {
+    background: var(--hightlight-color-first);
     color: var(--primary-color);
+    padding: 15px;
     font-weight: bold;
-    margin-bottom: 8px;
 }
-.container {
-    padding-top: 5vh;
+
+.table td {
+    padding: 12px;
+    color: var(--secondary-color);
+    border-bottom: 1px solid var(--hightlight-color-second);
+}
+
+.table tr:hover {
+    background-color: var(--hightlight-color-second);
+    transition: background-color 0.3s ease;
 }
 
 .table-responsive {
     overflow-x: auto;
 }
+
 .table th, .table td {
     white-space: nowrap;
     padding: 8px;
 }
-
