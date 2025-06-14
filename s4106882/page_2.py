@@ -27,7 +27,9 @@ def get_page_html(form_data):
     # Build query
     query = """
     SELECT s.name, ws.name, ws.latitude, ws.longitude, ws.site_id,
-           wd.DMY, wd.precipitation, wd.evaporation, wd.maxtemp, wd.mintemp
+           wd.DMY, wd.precipitation, 
+           CASE WHEN wd.evaporation = '' OR wd.evaporation IS NULL THEN NULL ELSE CAST(wd.evaporation AS FLOAT) END as evaporation,
+           wd.maxtemp, wd.mintemp
     FROM state s
     JOIN weather_station ws ON s.id = ws.state_id
     JOIN weather_data wd ON ws.site_id = wd.location
@@ -69,7 +71,7 @@ def get_page_html(form_data):
             elif tag == "high_precip":
                 weather_conditions.append("wd.precipitation > 10")
             elif tag == "high_evap":
-                weather_conditions.append("wd.evaporation > 5")
+                weather_conditions.append("CAST(wd.evaporation AS FLOAT) > 0")
         if weather_conditions:
             conditions.append("(" + " OR ".join(weather_conditions) + ")")
     
