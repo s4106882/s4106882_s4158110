@@ -22,7 +22,7 @@ def get_page_html(form_data):
         site_names_query += f" WHERE s.name = '{state}'"
     site_names_query += " ORDER BY ws.name"
     
-    site_names = [row[0] for row in pyhtml.get_results_from_query("C:/Users/hidde/Downloads/BOM_DATA(1)/climate_test.db", site_names_query)]
+    site_names = [row[0] for row in pyhtml.get_results_from_query("s4106882/Database/climate_final.db", site_names_query)]
 
     # Build query
     query = """
@@ -77,13 +77,13 @@ def get_page_html(form_data):
         query += " WHERE " + " AND ".join(conditions)
     
     count_query = f"SELECT COUNT(*) FROM ({query}) as count_table"
-    total_entries = pyhtml.get_results_from_query("C:/Users/hidde/Downloads/BOM_DATA(1)/climate_test.db", count_query)[0][0]
+    total_entries = pyhtml.get_results_from_query("s4106882/Database/climate_final.db", count_query)[0][0]
     total_pages = (total_entries + entries_per_page - 1) // entries_per_page
 
     query += f" LIMIT {entries_per_page} OFFSET {(current_page - 1) * entries_per_page}"
     
     # Get data from database
-    results = pyhtml.get_results_from_query("C:/Users/hidde/Downloads/BOM_DATA(1)/climate_test.db", query)
+    results = pyhtml.get_results_from_query("s4106882/Database/climate_final.db", query)
 
     # Get regional summary data
     summary_query = """
@@ -100,7 +100,7 @@ def get_page_html(form_data):
         summary_query += " WHERE " + " AND ".join(conditions)
     
     summary_query += " GROUP BY ws.name ORDER BY ws.name"
-    summary_results = pyhtml.get_results_from_query("C:/Users/hidde/Downloads/BOM_DATA(1)/climate_test.db", summary_query)
+    summary_results = pyhtml.get_results_from_query("s4106882/Database/climate_final.db", summary_query)
 
     pag_html = generate_pagination_controls(current_page, total_pages, state, start_lat, end_lat, start_long, end_long, weather_tags, site_name)
 
@@ -378,6 +378,6 @@ def get_site_names(form_data):
         site_names_query += f" WHERE s.name = '{state}'"
     site_names_query += " ORDER BY ws.name"
     
-    site_names = [row[0] for row in pyhtml.get_results_from_query("C:/Users/hidde/Downloads/BOM_DATA(1)/climate_test.db", site_names_query)]
+    site_names = [row[0] for row in pyhtml.get_results_from_query("s4106882/Database/climate_final.db", site_names_query)]
     
     return site_names  
