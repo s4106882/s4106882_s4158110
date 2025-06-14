@@ -88,18 +88,19 @@ def get_page_html(form_data):
     # Get regional summary data
     summary_query = """
     SELECT 
-        ws.name as region,
+        r.name as region,
         COUNT(DISTINCT ws.site_id) as num_stations,
         ROUND(AVG(wd.maxtemp), 1) as avg_max_temp
     FROM state s
     JOIN weather_station ws ON s.id = ws.state_id
+    JOIN region r ON ws.region_id = r.id
     JOIN weather_data wd ON ws.site_id = wd.location
     """
     
     if conditions:
         summary_query += " WHERE " + " AND ".join(conditions)
     
-    summary_query += " GROUP BY ws.name ORDER BY ws.name"
+    summary_query += " GROUP BY r.name ORDER BY r.name"
     summary_results = pyhtml.get_results_from_query("s4106882/Database/climate_final.db", summary_query)
 
     pag_html = generate_pagination_controls(current_page, total_pages, state, start_lat, end_lat, start_long, end_long, weather_tags, site_name)

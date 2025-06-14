@@ -127,25 +127,25 @@ def get_page_html(form_data):
                     <button class="graph-button next" data-graph-button="next"><i class="glyphicon glyphicon-chevron-right"></i></button>
                     <ul data-slides>
                         <li class="slide" data-active>
-                            <p>The """ + highest_temp_labels[0] + """ recorded the highest temperature of """ + format_temp(highest_temp_values[0]) + """ in our dataset.</p>
+                            <p style="margin-top: -80px;">The """ + highest_temp_labels[0] + """ recorded the highest temperature of """ + format_temp(highest_temp_values[0]) + """ in our dataset.</p>
                             <div style="width: 25%; height: 200px; margin: 20px auto;">
                                 <canvas id="highestTempChart"></canvas>
                             </div>
                         </li>
                         <li class="slide" data-next>
-                            <p>1970: Average High """ + format_temp(temp_comparison[0]) + """, Average Low """ + format_temp(temp_comparison[1]) + """<br>
+                            <p style="margin-top: -80px;">1970: Average High """ + format_temp(temp_comparison[0]) + """, Average Low """ + format_temp(temp_comparison[1]) + """<br>
                                2020: Average High """ + format_temp(temp_comparison[2]) + """, Average Low """ + format_temp(temp_comparison[3]) + """</p>
                             <div style="width: 25%; height: 200px; margin: 20px auto;">
                                 <canvas id="tempComparisonChart"></canvas>
                             </div>
                         </li>
                         <li class="slide" data-prev>
-                            <p>""" + ("All regions have no more than one weather station." if all(count == 1 for count in region_counts) else region_labels[0] + " has the most weather stations with " + str(region_counts[0]) + " stations.") + """</p>
+                            <p style="margin-top: -80px;">""" + ("All regions have no more than one weather station." if all(count == 1 for count in region_counts) else region_labels[0] + " has the most weather stations with " + str(region_counts[0]) + " stations.") + """</p>
                             <div class="counter">""" + str(region_counts[0]) + """</div>
                             <div class="counter-label">Weather Stations</div>
                         </li>
                         <li class="slide">
-                            <p>""" + ("All states have no more than one weather station." if all(count == 1 for count in state_counts) else state_labels[0] + " has the most weather stations with " + str(state_counts[0]) + " stations.") + """</p>
+                            <p style="margin-top: -80px;">""" + ("All states have no more than one weather station." if all(count == 1 for count in state_counts) else state_labels[0] + " has the most weather stations with " + str(state_counts[0]) + " stations.") + """</p>
                             <div style="width: 45%; height: 200px; margin: 20px auto;">
                                 <canvas id="stateChart"></canvas>
                             </div>
