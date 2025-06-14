@@ -7,9 +7,22 @@ def get_page_html(form_data):
     start_long = form_data.get("start_long", [""])[0]
     end_long = form_data.get("end_long", [""])[0]
     state = form_data.get("state", [""])[0]
+    site_name = form_data.get("site_name", [""])[0]
     current_page = int(form_data.get("page", ["1"])[0])
     entries_per_page = 20
     weather_tags = form_data.get("weather_tags", [])
+
+    # Get unique site names for the dropdown, filtered by state if selected
+    site_names_query = """
+    SELECT DISTINCT ws.name 
+    FROM weather_station ws 
+    JOIN state s ON ws.state_id = s.id
+    """
+    if state and state != "":
+        site_names_query += f" WHERE s.name = '{state}'"
+    site_names_query += " ORDER BY ws.name"
+    
+    site_names = [row[0] for row in pyhtml.get_results_from_query("C:/Users/hidde/Downloads/BOM_DATA(1)/climate_test.db", site_names_query)]
 
     # Build query
     query = """
@@ -23,6 +36,9 @@ def get_page_html(form_data):
     
     if state and state != "":
         conditions.append(f"s.name = '{state}'")
+    
+    if site_name and site_name != "":
+        conditions.append(f"ws.name = '{site_name}'")
     
     if start_lat or end_lat:
         lat_condition = []
@@ -61,15 +77,32 @@ def get_page_html(form_data):
         query += " WHERE " + " AND ".join(conditions)
     
     count_query = f"SELECT COUNT(*) FROM ({query}) as count_table"
-    total_entries = pyhtml.get_results_from_query("s4106882/Database/climate_test.db", count_query)[0][0]
+    total_entries = pyhtml.get_results_from_query("C:/Users/hidde/Downloads/BOM_DATA(1)/climate_test.db", count_query)[0][0]
     total_pages = (total_entries + entries_per_page - 1) // entries_per_page
 
     query += f" LIMIT {entries_per_page} OFFSET {(current_page - 1) * entries_per_page}"
     
     # Get data from database
-    results = pyhtml.get_results_from_query("s4106882/Database/climate_test.db", query)
+    results = pyhtml.get_results_from_query("C:/Users/hidde/Downloads/BOM_DATA(1)/climate_test.db", query)
 
-    pag_html = generate_pagination_controls(current_page, total_pages, state, start_lat, end_lat, start_long, end_long, weather_tags)
+    # Get regional summary data
+    summary_query = """
+    SELECT 
+        ws.name as region,
+        COUNT(DISTINCT ws.site_id) as num_stations,
+        ROUND(AVG(wd.maxtemp), 1) as avg_max_temp
+    FROM state s
+    JOIN weather_station ws ON s.id = ws.state_id
+    JOIN weather_data wd ON ws.site_id = wd.location
+    """
+    
+    if conditions:
+        summary_query += " WHERE " + " AND ".join(conditions)
+    
+    summary_query += " GROUP BY ws.name ORDER BY ws.name"
+    summary_results = pyhtml.get_results_from_query("C:/Users/hidde/Downloads/BOM_DATA(1)/climate_test.db", summary_query)
+
+    pag_html = generate_pagination_controls(current_page, total_pages, state, start_lat, end_lat, start_long, end_long, weather_tags, site_name)
 
     page_html="""
     <!DOCTYPE html>
@@ -97,7 +130,7 @@ def get_page_html(form_data):
                 <div class="col-md-3">
                     <form id="filterForm" method="GET" action="/page2">
                         <label for="state">State</label>
-                        <select name="state" id="states" class="form-control">
+                        <select name="state" id="states" class="form-control" onchange="updateSiteNames(this.value)">
                             <option value="">All States</option>
                             <option value="A.A.T." """ + ('selected' if state == 'A.A.T.' else '') + """>AAT</option>
                             <option value="A.E.T." """ + ('selected' if state == 'A.E.T.' else '') + """>AET</option>
@@ -109,10 +142,21 @@ def get_page_html(form_data):
                             <option value="VIC" """ + ('selected' if state == 'VIC' else '') + """>VIC</option>
                             <option value="W.A." """ + ('selected' if state == 'W.A.' else '') + """>WA</option>
                         </select>
+                        <label for="site_name" style="margin-top: 15px;">Site Name</label>
+                        <select name="site_name" id="site_name" class="form-control">
+                            <option value="">All Sites</option>
+    """
+    
+    # Add site name options
+    for name in site_names:
+        page_html += f'<option value="{name}" ' + ('selected' if site_name == name else '') + f'>{name}</option>'
+    
+    page_html += """
+                        </select>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Weather Conditions:</label>
+                        <label>Weather Conditions</label>
                         <div class="weather-tags">
                             <div class="row">
                                 <div class="col-md-6">
@@ -145,7 +189,7 @@ def get_page_html(form_data):
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>Location Range:</label>
+                        <label>Location Range</label>
                         <div class="row" style="margin-bottom: 15px;">
                             <div class="col-md-6">
                                 <input type="number" name="start_lat" id="start_lat" class="form-control" step="1" placeholder="Start Latitude" value=""" + start_lat + """>
@@ -172,25 +216,35 @@ def get_page_html(form_data):
                 </div>
             </div>
             <div id="results" class="mt-4">
-                <table id="data-table" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th onclick="sortTable(0)" class="sortable" data-sort="state">State</th>
-                            <th onclick="sortTable(1)" class="sortable" data-sort="name">Site Name</th>
-                            <th onclick="sortTable(2)" class="sortable" data-sort="latitude">Latitude</th>
-                            <th onclick="sortTable(3)" class="sortable" data-sort="longitude">Longitude</th>
-                            <th onclick="sortTable(4)" class="sortable" data-sort="site_id">Site ID</th>
-                            <th onclick="sortTable(5)" class="sortable" data-sort="DMY">Date</th>
-                            <th onclick="sortTable(6)" class="sortable" data-sort="precipitation">Precipitation (mm)</th>
-                            <th onclick="sortTable(7)" class="sortable" data-sort="evaporation">Evaporation (mm)</th>
-                            <th onclick="sortTable(8)" class="sortable" data-sort="maxtemp">Max Temperature (&deg;C)</th>
-                            <th onclick="sortTable(9)" class="sortable" data-sort="mintemp">Min Temperature (&deg;C)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <ul class="nav nav-tabs" id="dataTabs" role="tablist">
+                    <li class="active" role="presentation">
+                        <a href="#detailed" id="detailed-tab" role="tab" data-toggle="tab" aria-controls="detailed" aria-selected="true">Detailed Data</a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#summary" id="summary-tab" role="tab" data-toggle="tab" aria-controls="summary" aria-selected="false">Regional Summary</a>
+                    </li>
+                </ul>
+                <div class="tab-content" id="dataTabsContent">
+                    <div class="tab-pane fade in active" id="detailed" role="tabpanel" aria-labelledby="detailed-tab">
+                        <table id="data-table" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable(0)" class="sortable" data-sort="state">State</th>
+                                    <th onclick="sortTable(1)" class="sortable" data-sort="name">Site Name</th>
+                                    <th onclick="sortTable(2)" class="sortable" data-sort="latitude">Latitude</th>
+                                    <th onclick="sortTable(3)" class="sortable" data-sort="longitude">Longitude</th>
+                                    <th onclick="sortTable(4)" class="sortable" data-sort="site_id">Site ID</th>
+                                    <th onclick="sortTable(5)" class="sortable" data-sort="DMY">Date</th>
+                                    <th onclick="sortTable(6)" class="sortable" data-sort="precipitation">Precipitation (mm)</th>
+                                    <th onclick="sortTable(7)" class="sortable" data-sort="evaporation">Evaporation (mm)</th>
+                                    <th onclick="sortTable(8)" class="sortable" data-sort="maxtemp">Max Temperature (&deg;C)</th>
+                                    <th onclick="sortTable(9)" class="sortable" data-sort="mintemp">Min Temperature (&deg;C)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
     """
     
-    # Add data rows
+    # Add detailed data rows
     for row in results:
         page_html += "<tr>"
         for value in row:
@@ -198,23 +252,52 @@ def get_page_html(form_data):
         page_html += "</tr>"
     
     page_html += """
-                    </tbody>
-                </table>
-                """ + pag_html + """
+                            </tbody>
+                        </table>
+                        """ + pag_html + """
+                    </div>
+                    <div class="tab-pane fade" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+                        <table id="summary-table" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable(0)" class="sortable" data-sort="region">Region</th>
+                                    <th onclick="sortTable(1)" class="sortable" data-sort="num_stations">Number of Weather Stations</th>
+                                    <th onclick="sortTable(2)" class="sortable" data-sort="avg_max_temp">Average Max Temperature (&deg;C)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+    """
+    
+    # Add summary data rows
+    for row in summary_results:
+        page_html += "<tr>"
+        for value in row:
+            page_html += f"<td>{value}</td>"
+        page_html += "</tr>"
+    
+    page_html += """
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     </body>
     </html>
     """
     
     return page_html
 
-def generate_pagination_controls(current_page, total_pages, state, start_lat, end_lat, start_long, end_long, weather_tags):
+def generate_pagination_controls(current_page, total_pages, state, start_lat, end_lat, start_long, end_long, weather_tags, site_name):
     # Use current filters
     base_url = "/page2?"
     params = []
     if state:
         params.append(f"state={state}")
+    if site_name:
+        params.append(f"site_name={site_name}")
     if start_lat:
         params.append(f"start_lat={start_lat}")
     if end_lat:
@@ -269,6 +352,7 @@ def generate_pagination_controls(current_page, total_pages, state, start_lat, en
     <div class="page-input">
         <form method="GET" action="/page2" style="display: inline;">
             <input type="hidden" name="state" value="{state}">
+            <input type="hidden" name="site_name" value="{site_name}">
             <input type="hidden" name="start_lat" value="{start_lat}">
             <input type="hidden" name="end_lat" value="{end_lat}">
             <input type="hidden" name="start_long" value="{start_long}">
@@ -280,3 +364,20 @@ def generate_pagination_controls(current_page, total_pages, state, start_lat, en
     </div>'''
 
     return pag_html  
+
+def get_site_names(form_data):
+    state = form_data.get("state", [""])[0]
+    
+    # Get site names for the selected state
+    site_names_query = """
+    SELECT DISTINCT ws.name 
+    FROM weather_station ws 
+    JOIN state s ON ws.state_id = s.id
+    """
+    if state and state != "":
+        site_names_query += f" WHERE s.name = '{state}'"
+    site_names_query += " ORDER BY ws.name"
+    
+    site_names = [row[0] for row in pyhtml.get_results_from_query("C:/Users/hidde/Downloads/BOM_DATA(1)/climate_test.db", site_names_query)]
+    
+    return site_names  
