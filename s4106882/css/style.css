@@ -260,3 +260,98 @@ nav i.glyphicon-cloud {
     white-space: nowrap;
     padding: 8px;
 }
+
+/* Pagination Styles */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 20px;
+}
+
+.pagination {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pagination li {
+    margin: 0 2px;
+}
+
+.pagination li a,
+.pagination li span {
+    display: block;
+    padding: 8px 12px;
+    border: 2px solid var(--hightlight-color-first);
+    border-radius: 4px;
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.pagination li a:hover {
+    background-color: var(--hightlight-color-first);
+    color: white;
+}
+
+.pagination li.active span {
+    background-color: var(--hightlight-color-second);
+    border-color: var(--hightlight-color-second);
+    color: var(--primary-color);
+}
+
+.pagination li.disabled span {
+    color: #ccc;
+    border-color: #ccc;
+    cursor: not-allowed;
+}
+
+.page-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.page-input .form-control {
+    width: 60px;
+    text-align: center;
+}
+
+.page-input .btn {
+    padding: 8px 15px;
+}
+
+.weather-tags {
+    background: white;
+    padding: 15px;
+    border-radius: 5px;
+    border: 2px solid var(--hightlight-color-first);
+}
+
+.weather-tags .checkbox {
+    margin-bottom: 10px;
+}
+
+.weather-tags .checkbox label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--primary-color);
+    transition: color 0.3s ease;
+}
+
+.weather-tags .checkbox label:hover {
+    color: var(--hightlight-color-second);
+}
+
+.weather-tags input[type="checkbox"] {
+    margin-right: 8px;
+    accent-color: var(--hightlight-color-first);
+}
+
+.weather-tags input[type="checkbox"]:checked {
+    accent-color: var(--hightlight-color-second);
+}

@@ -4,20 +4,26 @@ def get_page_html(form_data):
     # Get data from forms
     start_lat = form_data.get("start_lat", [""])[0]
     end_lat = form_data.get("end_lat", [""])[0]
+    start_long = form_data.get("start_long", [""])[0]
+    end_long = form_data.get("end_long", [""])[0]
     state = form_data.get("state", [""])[0]
+    current_page = int(form_data.get("page", ["1"])[0])
+    entries_per_page = 20
+    weather_tags = form_data.get("weather_tags", [])
 
     # Build query
     query = """
-    SELECT s.name, ws.name, ws.latitude, ws.site_id
+    SELECT s.name, ws.name, ws.latitude, ws.longitude, ws.site_id,
+           wd.DMY, wd.precipitation, wd.evaporation, wd.maxtemp, wd.mintemp
     FROM state s
     JOIN weather_station ws ON s.id = ws.state_id
+    JOIN weather_data wd ON ws.site_id = wd.location
     """
     conditions = []
     
     if state and state != "":
         conditions.append(f"s.name = '{state}'")
     
-    # Handle latitude range with optional values
     if start_lat or end_lat:
         lat_condition = []
         if start_lat:
@@ -26,12 +32,44 @@ def get_page_html(form_data):
             lat_condition.append(f"ws.latitude <= {float(end_lat)}")
         if lat_condition:
             conditions.append(" AND ".join(lat_condition))
+
+    if start_long or end_long:
+        long_condition = []
+        if start_long:
+            long_condition.append(f"ws.longitude >= {float(start_long)}")
+        if end_long:
+            long_condition.append(f"ws.longitude <= {float(end_long)}")
+        if long_condition:
+            conditions.append(" AND ".join(long_condition))
+
+    # Tag conditions
+    if weather_tags:
+        weather_conditions = []
+        for tag in weather_tags:
+            if tag == "high_temp":
+                weather_conditions.append("wd.maxtemp > 30")
+            elif tag == "low_temp":
+                weather_conditions.append("wd.mintemp < 10")
+            elif tag == "high_precip":
+                weather_conditions.append("wd.precipitation > 10")
+            elif tag == "high_evap":
+                weather_conditions.append("wd.evaporation > 5")
+        if weather_conditions:
+            conditions.append("(" + " OR ".join(weather_conditions) + ")")
     
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
     
+    count_query = f"SELECT COUNT(*) FROM ({query}) as count_table"
+    total_entries = pyhtml.get_results_from_query("s4106882/Database/climate_test.db", count_query)[0][0]
+    total_pages = (total_entries + entries_per_page - 1) // entries_per_page
+
+    query += f" LIMIT {entries_per_page} OFFSET {(current_page - 1) * entries_per_page}"
+    
     # Get data from database
     results = pyhtml.get_results_from_query("s4106882/Database/climate_test.db", query)
+
+    pag_html = generate_pagination_controls(current_page, total_pages, state, start_lat, end_lat, start_long, end_long, weather_tags)
 
     page_html="""
     <!DOCTYPE html>
@@ -70,19 +108,55 @@ def get_page_html(form_data):
                         </select>
                 </div>
                 <div class="col-md-6">
-                    <!-- For Tags -->
+                    <div class="form-group">
+                        <label>Weather Conditions:</label>
+                        <div class="weather-tags">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="weather_tags" value="high_temp" """ + ('checked' if 'high_temp' in weather_tags else '') + """> High Temperature (&gt;30&deg;C)
+                                        </label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="weather_tags" value="low_temp" """ + ('checked' if 'low_temp' in weather_tags else '') + """> Low Temperature (&lt;10&deg;C)
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="weather_tags" value="high_precip" """ + ('checked' if 'high_precip' in weather_tags else '') + """> High Precipitation (>10mm)
+                                        </label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="weather_tags" value="high_evap" """ + ('checked' if 'high_evap' in weather_tags else '') + """> High Evaporation (>5mm)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>Latitude Range:</label>
+                        <label>Location Range:</label>
                         <div class="row" style="margin-bottom: 15px;">
                             <div class="col-md-6">
                                 <input type="number" name="start_lat" id="start_lat" class="form-control" step="1" placeholder="Start Latitude" value=""" + start_lat + """>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="number" name="start_long" id="start_long" class="form-control" step="1" placeholder="Start Longitude" value=""" + start_long + """>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <input type="number" name="end_lat" id="end_lat" class="form-control" step="1" placeholder="End Latitude" value=""" + end_lat + """>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="number" name="end_long" id="end_long" class="form-control" step="1" placeholder="End Longitude" value=""" + end_long + """>
                             </div>
                         </div>
                         <div class="row" style="margin-top: 15px;">
@@ -101,10 +175,16 @@ def get_page_html(form_data):
                             <th onclick="sortTable(0)" class="sortable" data-sort="state">State</th>
                             <th onclick="sortTable(1)" class="sortable" data-sort="name">Site Name</th>
                             <th onclick="sortTable(2)" class="sortable" data-sort="latitude">Latitude</th>
-                            <th onclick="sortTable(3)" class="sortable" data-sort="site_id">Site ID</th>
+                            <th onclick="sortTable(3)" class="sortable" data-sort="longitude">Longitude</th>
+                            <th onclick="sortTable(4)" class="sortable" data-sort="site_id">Site ID</th>
+                            <th onclick="sortTable(5)" class="sortable" data-sort="DMY">Date</th>
+                            <th onclick="sortTable(6)" class="sortable" data-sort="precipitation">Precipitation (mm)</th>
+                            <th onclick="sortTable(7)" class="sortable" data-sort="evaporation">Evaporation (mm)</th>
+                            <th onclick="sortTable(8)" class="sortable" data-sort="maxtemp">Max Temperature (&deg;C)</th>
+                            <th onclick="sortTable(9)" class="sortable" data-sort="mintemp">Min Temperature (&deg;C)</th>
                         </tr>
                     </thead>
-                    <tbody id="data-table">
+                    <tbody>
     """
     
     # Add data rows
@@ -117,6 +197,7 @@ def get_page_html(form_data):
     page_html += """
                     </tbody>
                 </table>
+                """ + pag_html + """
             </div>
         </div>
     </body>
@@ -124,3 +205,75 @@ def get_page_html(form_data):
     """
     
     return page_html
+
+def generate_pagination_controls(current_page, total_pages, state, start_lat, end_lat, start_long, end_long, weather_tags):
+    # Use current filters
+    base_url = "/page2?"
+    params = []
+    if state:
+        params.append(f"state={state}")
+    if start_lat:
+        params.append(f"start_lat={start_lat}")
+    if end_lat:
+        params.append(f"end_lat={end_lat}")
+    if start_long:
+        params.append(f"start_long={start_long}")
+    if end_long:
+        params.append(f"end_long={end_long}")
+    for tag in weather_tags:
+        params.append(f"weather_tags={tag}")
+    base_url += "&".join(params)
+    if params:
+        base_url += "&"
+
+    pag_html = '<div class="pagination-container"><ul class="pagination">'
+    
+    # Previous button
+    if current_page > 1:
+        pag_html += f'<li><a href="{base_url}page={current_page-1}">&laquo;</a></li>'
+    else:
+        pag_html += '<li class="disabled"><span>&laquo;</span></li>'
+
+    # Page numbers
+    max_visible_pages = 5
+    start_page = max(1, current_page - max_visible_pages // 2)
+    end_page = min(total_pages, start_page + max_visible_pages - 1)
+    
+    if start_page > 1:
+        pag_html += f'<li><a href="{base_url}page=1">1</a></li>'
+        if start_page > 2:
+            pag_html += '<li class="disabled"><span>...</span></li>'
+
+    for page in range(start_page, end_page + 1):
+        if page == current_page:
+            pag_html += f'<li class="active"><span>{page}</span></li>'
+        else:
+            pag_html += f'<li><a href="{base_url}page={page}">{page}</a></li>'
+
+    if end_page < total_pages:
+        if end_page < total_pages - 1:
+            pag_html += '<li class="disabled"><span>...</span></li>'
+        pag_html += f'<li><a href="{base_url}page={total_pages}">{total_pages}</a></li>'
+
+    # Next button
+    if current_page < total_pages:
+        pag_html += f'<li><a href="{base_url}page={current_page+1}">&raquo;</a></li>'
+    else:
+        pag_html += '<li class="disabled"><span>&raquo;</span></li>'
+
+    pag_html += f'''
+    </ul>
+    <div class="page-input">
+        <form method="GET" action="/page2" style="display: inline;">
+            <input type="hidden" name="state" value="{state}">
+            <input type="hidden" name="start_lat" value="{start_lat}">
+            <input type="hidden" name="end_lat" value="{end_lat}">
+            <input type="hidden" name="start_long" value="{start_long}">
+            <input type="hidden" name="end_long" value="{end_long}">
+            <input type="number" name="page" min="1" max="{total_pages}" value="{current_page}" class="form-control" style="width: 60px; display: inline-block;">
+            <button type="submit" class="btn btn-primary">Go</button>
+        </form>
+    </div>
+    </div>'''
+
+    return pag_html  
