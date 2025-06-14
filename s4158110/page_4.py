@@ -2,7 +2,7 @@ import sqlite3
 import re
 
 def get_page_html(form_data):
-    # Connect to your database
+    # Connect to database
     conn = sqlite3.connect('s4158110/database/personas.db')
     c = conn.cursor()
 
@@ -30,6 +30,14 @@ def get_page_html(form_data):
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <title>Mission Statement</title>
         <style>
+            /* Hide scrollbar for all browsers */
+            html, body {{
+                -ms-overflow-style: none;  /* IE and Edge */
+                scrollbar-width: none;     /* Firefox */
+            }}
+            html::-webkit-scrollbar, body::-webkit-scrollbar {{
+                display: none;             /* Chrome, Safari, Opera */
+            }}
             .persona-header {{
                 text-align: center;
                 margin-top: 32px;
