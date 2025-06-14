@@ -49,6 +49,9 @@ def get_page_html(form_data):
                 <i class="glyphicon glyphicon-home"></i><a href="/">Home</a>
                 <i class="glyphicon glyphicon-map-marker"></i><a href="/page2">Page 2</a>
                 <i class="glyphicon glyphicon-cloud"></i><a href="/page3">Page 3</a>
+                <i class="glyphicon glyphicon-star"></i><a href="/page4">Page 4</a>
+                <i class="glyphicon glyphicon-heart"></i><a href="/page5">Page 5</a>
+                <i class="glyphicon glyphicon-cog"></i><a href="/page6">Page 6</a>
             </nav>
         </header>
         <div class="container">
