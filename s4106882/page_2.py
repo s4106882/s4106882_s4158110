@@ -73,7 +73,7 @@ def get_page_html(form_data):
             elif tag == "high_evap":
                 weather_conditions.append("CAST(wd.evaporation AS FLOAT) > 0")
         if weather_conditions:
-            conditions.append("(" + " OR ".join(weather_conditions) + ")")
+            conditions.append("(" + " AND ".join(weather_conditions) + ")")
     
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
