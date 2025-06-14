@@ -3,13 +3,13 @@ def get_page_html(form_data):
     <!DOCTYPE html>
     <html lang="en">
     <head>
-        <link rel="stylesheet" href="/s4106882/style.css">
+        <link rel="stylesheet" href="/s4106882/css/style.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <title>Page 3</title>
     </head>
     <body>
         <header>
-            <img src="/s4106882/RMIT-emblem.png" class="logo">
+            <img src="/s4106882/images/RMIT-emblem.png" class="logo">
             <nav>
                 <i class="glyphicon glyphicon-home"></i><a href="/">Home</a>
                 <i class="glyphicon glyphicon-map-marker"></i><a href="/page2">Page 2</a>

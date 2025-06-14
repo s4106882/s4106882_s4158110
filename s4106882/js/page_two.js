@@ -34,4 +34,30 @@ function sortTable(n) {
         }
       }
     }
-  }
+}
+
+function updateSiteNames(state) {
+    // Create form data
+    const formData = new FormData();
+    formData.append('state', state);
+    
+    // Send AJAX request to get site names
+    fetch('/get_site_names', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const siteSelect = document.getElementById('site_name');
+        siteSelect.innerHTML = '<option value="">All Sites</option>';
+        
+        // Add new options
+        data.forEach(site => {
+            const option = document.createElement('option');
+            option.value = site;
+            option.textContent = site;
+            siteSelect.appendChild(option);
+        });
+    })
+    .catch(error => console.error('Error:', error));
+}
