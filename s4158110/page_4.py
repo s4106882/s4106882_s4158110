@@ -137,7 +137,7 @@ def get_page_html(form_data):
         </header>
         <main>
             <div class="section-card">
-                <h1>Mission Statement</h1>
+                <h1>Purpose</h1>
                 <p>{mission}</p>
             </div>
             <div class="section-card">
